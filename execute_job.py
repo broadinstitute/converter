@@ -5,31 +5,28 @@ import sys
 import os
 import errno
 
-files = {'ERR': "jobs.err", 'LOG': "jobs.log"}
+files = {'LOG': "jobs.log"}
 
 def execute_job(commParams, filepointers=None):
-    command = ' '.join(commParams)
     if filepointers == None:
         filepointers = {}
-    if 'ERR' not in filepointers:
-        filepointers['ERR'] = open(files['ERR'], 'a+')
     if 'LOG' not in filepointers:
         filepointers['LOG'] = open(files['LOG'], 'a+')
+    command  = ' '.join(commParams)
+    errormsg = ""
     try:
-        thread0 = subprocess.Popen( shlex.split(command), stdout = subprocess.PIPE, stderr = filepointers['ERR'])
+        thread0 = subprocess.Popen( shlex.split(command), stdout = subprocess.PIPE, stderr = filepointers['LOG'] )
         thread0.wait()
-        logstring = command + "\nSuccessful.\n"
-        filepointers['LOG'].write(logstring)
-        return thread0.stdout.read()
+        #print thread0.stdout.read().strip(),
+        return True
     except subprocess.CalledProcessError as err:
-        logstring = "\nError::\n" + err.output
-        filepointers['LOG'].write(logstring)
-        exit()
+        errormsg = "\n# ERROR: " + err.output
     except Exception as E:
-        logstring = str(E)
-        filepointers['LOG'].write(logstring)
-        for filepointer in filepointers:
-            filepointers[filepointer].close()
+        errormsg += "\n# ERROR: " + str(E)
+    filepointers['LOG'].write(errormsg)
+    for filepointer in filepointers:
+        filepointers[filepointer].close()
+    return False
 
 def main():
     command = sys.argv[1]
