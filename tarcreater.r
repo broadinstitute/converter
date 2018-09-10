@@ -26,7 +26,7 @@ set_arguments <- function() {
   }
   if (!("-p" %in% names(args)) || !("-o" %in% names(args)) ||
       !("-f" %in% names(args)) || !("-s" %in% names(args))){
-    stop("###Error: '-p'/'-o'/'-f'/'-s' Options Required.\nCall Rscript tarcreater.r -h for usage.\n", call. = TRUE)
+    stop("### Error: '-p'/'-o'/'-f'/'-s' Options Required.\n", call. = TRUE)
   }
   if (args[['-f']] == "gct" && !('-v' %in% names(args))){
     stop("### Error: '-v' Option Required With '-f' : \"gct\".\n", call. = TRUE)
@@ -50,9 +50,9 @@ check_gct_against_expt <- function(myfile){
   gctcid <- out@cid
   expcsv <- extract_expt_desn()
   if (nrow(expcsv) < length(gctcid)){
-    stop("### Error: Samles in .GCT not found in EXPT DESN file.\n", call. = TRUE)
+    stop("### Error: Samples in .GCT not found in Experiment Design file.\n", call. = TRUE)
   } else if (nrow(expcsv) > length(gctcid)){
-    print(paste0("# Warning: Some Samples Missing in ", myfile, " file."))
+    print(paste0("=== Warning: Some Samples Missing in ", myfile, " file."))
   }
 }
 
