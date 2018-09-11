@@ -2,15 +2,17 @@
 
 ### Running the tarcreater manually
 
-`python tarcreater.py -p <omics-ratio.gct> -e <experiment-design.csv> -o <output.tar> [ (optional) -m <extra_file_1> <extra_file_2> ...]`
+```
+python tarcreater.py -p <omics-ratio.gct> -e <experiment-design.csv> -o <output.tar> [ (optional) -m <extra_file_1> <extra_file_2> ...]
 
-`Rscript tarcreater.r 
+Rscript tarcreater.r 
 -p <omics-ratio.ext>
 -e <experiment-design.csv>
 -o <output.tar>
 -f gct/cct/... (extension)
 -v 1.2/1.3 (version)
--m <extra_file1> <Extra_File_2> ... (optional files)`
+-m <extra_file1> <Extra_File_2> ... (optional files)
+```
 
 ### Running the tarcreater on Firecloud
 
