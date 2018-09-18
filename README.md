@@ -13,7 +13,7 @@ Rscript tarcreater.r [OPTIONS]
 | -e | `experiment-design.csv` / `your-file-name.tsi` | REQUIRED if `-p` is `gct` and `-v` is 1.2 | Allowed pairs: `csv-gct` and `tsi-cct`|
 | -o | `output.tar`                                   | REQUIRED                                  | No absolute paths; Only output tarball name |
 | -n | normalized flag                                | REQUIRED                                  | `T` if normalized; `F` otherwise |
-| -t | annotation flag                                | OPTIONAL                                  | -omics data contains `.T`/`.N` suffixed sample IDs/column names |
+| -t | annotation flag                                | OPTIONAL                                  | `T` if -omics data contains `.T`/`.N` suffixed sample IDs/column names; `F` otherwise |
 | -m | `extra_file_1` `extra_file_2` ...              | OPTIONAL                                  | In presence of `sct` file, make it the first argument to this option |
 
 ```
