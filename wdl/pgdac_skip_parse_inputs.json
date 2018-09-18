@@ -1,5 +1,6 @@
 {
-  "pgdac_skip_parse_workflow.pgdac_skip_parse.exptDesign": "/Users/rkothadi/Documents/Code/MyGithub/tarcreater/exptdesign.csv",
-  "pgdac_skip_parse_workflow.pgdac_skip_parse.extra": ["/Users/rkothadi/Documents/Code/MyGithub/tarcreater/extra1.txt", "/Users/rkothadi/Documents/Code/MyGithub/tarcreater/extra2.txt"],
-  "pgdac_skip_parse_workflow.pgdac_skip_parse.omicsRatio": "/Users/rkothadi/Documents/Code/MyGithub/tarcreater/proteome-ratio.gct"
+  "pgdac_skip_parse_workflow.pgdac_skip_parse.normalize": "F",
+  "pgdac_skip_parse_workflow.pgdac_skip_parse.exptDesign": "/Users/rkothadi/Documents/Code/MyGithub/tarcreater/input-data/UCEC_clinical_genotype_phenotype_V1.1.tsi.xlsx",
+  "pgdac_skip_parse_workflow.pgdac_skip_parse.filetype": "cct",
+  "pgdac_skip_parse_workflow.pgdac_skip_parse.omicsRatio": "/Users/rkothadi/Documents/Code/MyGithub/tarcreater/input-data/UCEC_CNA_gene_level_hg19_V1.cct"
 }

@@ -2,12 +2,11 @@ task pgdac_skip_parse {
   File omicsRatio
   String outFile = "pgdac_skip_parse-output.tar"
   String filetype
-  String source
   String? tumorannot
   File? exptDesign
   Array[File]? extra
   String? version
-  String? normalize
+  String normalize
 
   Int? memory
   Int? disk_space

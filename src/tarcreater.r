@@ -22,7 +22,7 @@ set_arguments <- function() {
       args[[option]] <<- sysargs[index+1]
       index <- index + 2
     } else if (!(option %in% valid)){
-      stop("### Error: Invalid Option.\n", call. = TRUE)
+      stop(glue("### Error: Invalid Option {option}.\n"), call. = TRUE)
     }
   }
   index <- index + 1
