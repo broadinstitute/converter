@@ -2,8 +2,10 @@
 
 ### Running the tarcreater manually
 
+```
 Rscript tarcreater.r [OPTIONS]
 
+```
 
 | OPTIONS | VALUES | REQUIRED | DESCRIPTION |
 |:-------:|:------:|:--------:|-------------|
