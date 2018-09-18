@@ -6,12 +6,13 @@
 Rscript tarcreater.r [OPTIONS]
 
 OPTIONS:
--s /path/to/this/repos/tarcreater/ -REQUIRED-
 -p <omics-ratio.ext> -REQUIRED-
 -f <ext> (extention of -p) -REQUIRED-
 -v <1.2/1.3> (version of -p if GCT) -REQUIRED for GCT-
 -e <experiment-design.csv> -REQUIRED for GCT 1.2-
 -o <output.tar> -REQUIRED-
+-n normalized flag, {T if normalized / F} -REQUIRED-
+-t omics data contains '.T'/'.N' annotations
 -m <extra_file_1> <extra_file_2> ... -OPTIONAL-
 
 python tarcreater.py [OPTIONS] ***OBSOLETE***
