@@ -2,8 +2,8 @@
 
 ### Running the tarcreater manually
 
-```
 Rscript tarcreater.r [OPTIONS]
+
 
 | OPTIONS | VALUES | REQUIRED | DESCRIPTION |
 |:-------:|:------:|:--------:|-------------|
@@ -16,6 +16,7 @@ Rscript tarcreater.r [OPTIONS]
 | -t | <annotation flag>                            | OPTIONAL                                | -omics data contains '.T'/'.N' suffixed sample IDs/column names |
 | -m | <extra_file_1> <extra_file_2> ...            | OPTIONAL                                | In presence of sct file, make it the first argument to this option |
 
+```
 python tarcreater.py [OPTIONS] ***OBSOLETE***
 
 OPTIONS:
