@@ -5,15 +5,16 @@
 ```
 Rscript tarcreater.r [OPTIONS]
 
-OPTIONS:
--p <omics-ratio.ext> -REQUIRED-
--f <ext> (extention of -p) -REQUIRED-
--v <1.2/1.3> (version of -p if GCT) -REQUIRED for GCT-
--e <experiment-design.csv> -REQUIRED for GCT 1.2-
--o <output.tar> -REQUIRED-
--n normalized flag, {T if normalized / F} -REQUIRED-
--t omics data contains '.T'/'.N' annotations
--m <extra_file_1> <extra_file_2> ... -OPTIONAL-
+| OPTIONS | VALUES | REQUIRED | DESCRIPTION |
+|:-------:|:------:|:--------:|-------------|
+| -p | <omics-ratio.ext>                            | REQUIRED                                | -omics Input File |
+| -f | <ext>                                        | REQUIRED                                | File extension of '-p'; Can be: 'gct', 'cct'. |
+| -v | <1.2/1.3>                                    | REQUIRED for GCT                        | version of '-p' if gct |
+| -e | <experiment-design.csv / your-file-name.tsi> | REQUIRED if '-p' is gct and '-v' is 1.2 | Allowed pairs: csv-gct and tsi-cct|
+| -o | <output.tar>                                 | REQUIRED                                | No absolute paths; Only output tarball name |
+| -n | <normalized flag>                            | REQUIRED                                | 'T' if normalized; 'F' otherwise |
+| -t | <annotation flag>                            | OPTIONAL                                | -omics data contains '.T'/'.N' suffixed sample IDs/column names |
+| -m | <extra_file_1> <extra_file_2> ...            | OPTIONAL                                | In presence of sct file, make it the first argument to this option |
 
 python tarcreater.py [OPTIONS] ***OBSOLETE***
 

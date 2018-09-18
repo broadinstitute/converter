@@ -11,6 +11,7 @@ inpdir <- ""
 pinp <- ""
 einp <- ""
 
+# set command line arguments in the appropriate variables
 set_arguments <- function() {
   sysargs <- commandArgs(trailingOnly = TRUE)
   sysalen <- length(sysargs)
@@ -42,6 +43,7 @@ set_arguments <- function() {
   }
 }
 
+# reorder experiment design file in case order doesn't match with the order of samples in the -omics file. Append extra samples at the bottom.
 reorder <- function(efile, edat, msids){
   rofile <- glue("{inpdir}/exptdesign_ro.csv")
   rodata <- data.frame()
@@ -64,6 +66,9 @@ reorder <- function(efile, edat, msids){
   return(rodata)
 }
 
+# check if there are any unaccounted samples in the -omics file that are absent in the experiment design file.
+# In that case report an error. If there is an sample order mismatch between the -omics and experiment design file, reorder the latter.
+# In case there are samples absent in -omics but present in experiment design, report a warning.
 check_me_against_expt <- function(msids, esids, edat){
   if (length(esids) < length(msids)){
     stop("!Error: Unknown Samples in -p. Match Failed.\n", call. = TRUE)
@@ -80,10 +85,14 @@ check_me_against_expt <- function(msids, esids, edat){
   else return(edat)
 }
 
+# read the experiment design csv file associated with the gct -omics file
 extract_expt_desn <- function(myfile){
   return(read.csv(myfile, header = TRUE, sep = ',', row.names = 1))
 }
 
+# read the experiment design tsi file associated with the cct -omics file.
+# In case the '-t' is present in command line arguments, modify the experiment design file by duplicating current rows,
+# appending it one below another where top half's row names have .T suffixes and bottom half's .N suffixes. Replace any hyphens with '.'
 extract_tsi <- function(myfile){
   edata <- read.xlsx(myfile, sheet = 2, colNames = TRUE, rowNames = TRUE, check.names = TRUE)
   edata <- edata[2:nrow(edata), ] #Ignore the Data Type Row
@@ -98,12 +107,13 @@ extract_tsi <- function(myfile){
   return(edata)
 }
 
+# read the cct file into a data frame for further processing
 extract_cct <- function(myfile){
   cct <- read.delim(myfile, header = TRUE, sep = '\t', row.names = 1, check.names = TRUE)
-  return(cct)  
+  return(cct)
 }
 
-
+# read the gct file, cross check to confirm version matches between entered -omics file and user-inputted version
 extract_gct <- function(myfile){
   gctdata <- suppressMessages(parse.gctx(myfile))
   if (args[['-v']] != strsplit(gctdata@version, "[#]")[[1]][-1]){
@@ -112,10 +122,12 @@ extract_gct <- function(myfile){
   return(gctdata@mat)
 }
 
+# read the sct file to fill the rdesc of the to-be created gct object
 extract_sct <- function(myfile){
   return(read.delim(myfile, header = TRUE, sep = '\t', row.names = 1, check.names = TRUE))
 }
 
+# fill the cdesc and rdesc, create a new gct object, write it into a file and save old addresses
 to_gct_3 <- function(edat, pdat) {
   cdesc <- cbind(Sample.ID=rownames(edat), edat)
   cdesc <- cdesc[1:ncol(pdat), ]
@@ -124,13 +136,14 @@ to_gct_3 <- function(edat, pdat) {
   } else rdesc <- data.frame(Description=rownames(pdat))
   cdesc[] <- lapply(cdesc, as.character)
   rdesc[] <- lapply(rdesc, as.character)
-  gct <- new("GCT", mat = as.matrix(pdat), cdesc = cdesc, rdesc = rdesc, 
+  gct <- new("GCT", mat = as.matrix(pdat), cdesc = cdesc, rdesc = rdesc,
              rid = rownames(pdat), cid = colnames(pdat), src = glue("{inpdir}/proteome.gct"))
   write.gct(gct, glue("{inpdir}/proteome.gct"), ver = 3, appenddim = FALSE)
   pinp <<- args[['-p']]
   args[['-p']] <<- glue("{inpdir}/proteome.gct")
 }
 
+# fill the cdesc and rdesc, create a new gct object, write it into a file and save old addresses
 to_gct_2 <- function(pdat){
   cdesc <- data.frame()
   rdesc <- data.frame(id=rownames(pdat), Description=rownames(pdat))
@@ -141,11 +154,13 @@ to_gct_2 <- function(pdat){
   args[['-p']] <<- glue("{inpdir}/proteome.gct")
 }
 
+# convert to gct 1.2 if no experiment design file exists; otherwise to gct 1.3
 convert_to_gct <- function(edat, pdat){
   if ('-e' %in% names(args)) to_gct_3(edat, pdat)
   else to_gct_2(pdat)
 }
 
+# collect data from -omics and experiement design; convert to gct in case of cct
 check_format <- function(myfile){
   inpdir <<- paste(head(strsplit(myfile, "[/]")[[1]], -1), collapse='/')
   srcdir <<- paste(head(strsplit(inpdir, "[/]")[[1]], -1), collapse='/')
@@ -162,6 +177,7 @@ check_format <- function(myfile){
   if (extn != "gct") convert_to_gct(edat, pdat)
 }
 
+# create the output tarball with data, parsed-data OR normalized-data as subdirectories depending on flags
 create_tar <- function(){
   tardir <- glue("{strsplit(args[['-o']], '[.]')[[1]][1]}")
   system(glue("cd {srcdir}"))
@@ -171,7 +187,7 @@ create_tar <- function(){
     system(glue("cp {args[['-e']]} {tardir}/data/."))
   if (freorder){
     if (args[['-f']] == "gct") system(glue("cp {inpdir}/exptdesign_orig.csv {tardir}/data/."))
-    else system(glue("cp {einp} {tardir}/data/.")) 
+    else system(glue("cp {einp} {tardir}/data/."))
   }
   if (args[['-f']] != "gct") system(glue("cp {pinp} {tardir}/data/."))
   if (args[["-n"]] != "T") targetdir <- "parsed-data"
