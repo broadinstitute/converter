@@ -116,7 +116,7 @@ extract_sct <- function(myfile){
   return(read.delim(myfile, header = TRUE, sep = '\t', row.names = 1, check.names = TRUE))
 }
 
-convert_to_gct <- function(edat, pdat) {
+to_gct_3 <- function(edat, pdat) {
   cdesc <- cbind(Sample.ID=rownames(edat), edat)
   cdesc <- cdesc[1:ncol(pdat), ]
   if ("-m" %in% names(args) && tail(strsplit(args[['-m']][1], "[.]")[[1]], 1) == "sct"){
@@ -129,6 +129,21 @@ convert_to_gct <- function(edat, pdat) {
   write.gct(gct, glue("{inpdir}/proteome.gct"), ver = 3, appenddim = FALSE)
   pinp <<- args[['-p']]
   args[['-p']] <<- glue("{inpdir}/proteome.gct")
+}
+
+to_gct_2 <- function(pdat){
+  cdesc <- data.frame()
+  rdesc <- data.frame(id=rownames(pdat), Description=rownames(pdat))
+  rdesc[] <- lapply(rdesc, as.character)
+  gct <- new("GCT", mat = as.matrix(pdat), rid = rownames(pdat), cid = colnames(pdat), rdesc = rdesc, cdesc = cdesc, src = glue("~/Documents/test.gct"))
+  write.gct(gct, glue("{inpdir}/proteome.gct"), ver = 2, appenddim = FALSE)
+  pinp <<- args[['-p']]
+  args[['-p']] <<- glue("{inpdir}/proteome.gct")
+}
+
+convert_to_gct <- function(edat, pdat){
+  if ('-e' %in% names(args)) to_gct_3(edat, pdat)
+  else to_gct_2(pdat)
 }
 
 check_format <- function(myfile){
@@ -152,7 +167,8 @@ create_tar <- function(){
   system(glue("cd {srcdir}"))
   system(glue("mkdir -p {tardir}"))
   system(glue("mkdir -p {tardir}/data"))
-  system(glue("cp {args[['-e']]} {tardir}/data/."))
+  if ('-e' %in% names(args))
+    system(glue("cp {args[['-e']]} {tardir}/data/."))
   if (freorder){
     if (args[['-f']] == "gct") system(glue("cp {inpdir}/exptdesign_orig.csv {tardir}/data/."))
     else system(glue("cp {einp} {tardir}/data/.")) 
