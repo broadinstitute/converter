@@ -1,14 +1,20 @@
-#!/usr/bin/env Rscript
-
 if(!suppressMessages(require("pacman"))) install.packages("pacman")
-pacman::p_load_gh("cmap/cmapR")
+p_load(cmapR)
+p_load(openxlsx)
+p_load(glue)
+p_load(optparse)
 
 args <- list()
+freorder <- FALSE
+srcdir <- ""
+inpdir <- ""
+pinp <- ""
+einp <- ""
 
 set_arguments <- function() {
   sysargs <- commandArgs(trailingOnly = TRUE)
   sysalen <- length(sysargs)
-  valid   <- c('-p', '-e', '-o', '-m', '-v', '-n', '-f', '-s')
+  valid   <- c('-p', '-e', '-o', '-m', '-v', '-n', '-f', '-t')
   index   <- 1
   while (index <= sysalen && sysargs[index] != '-m'){
     option <- sysargs[index]
@@ -25,8 +31,8 @@ set_arguments <- function() {
     index <- index + 1
   }
   if (!("-p" %in% names(args)) || !("-o" %in% names(args)) ||
-      !("-f" %in% names(args)) || !("-s" %in% names(args))){
-    stop("### Error: '-p'/'-o'/'-f'/'-s' Options Required.\n", call. = TRUE)
+      !("-f" %in% names(args)) || !("-n" %in% names(args))){
+    stop("### Error: '-p'/'-o'/'-f'/'-n' Options Required.\n", call. = TRUE)
   }
   if (args[['-f']] == "gct" && !('-v' %in% names(args))){
     stop("### Error: '-v' Option Required With '-f' : \"gct\".\n", call. = TRUE)
@@ -36,78 +42,134 @@ set_arguments <- function() {
   }
 }
 
-extract_expt_desn <- function(myfile){
-  return(read.csv(myfile, header = TRUE, sep = ','))
-}
-
-reorder <- function(expfile, expdata, gctcids){
-  rofile <- "exptdesign_ro.csv"
+reorder <- function(efile, edat, msids){
+  rofile <- glue("{inpdir}/exptdesign_ro.csv")
   rodata <- data.frame()
   ordids <- c()
-  for (sample in gctcids){
-    oldidx <- which(expdata$Sample.ID == sample)
+  for (sample in msids){
+    oldidx <- which(rownames(edat) == sample)
     ordids <- c(ordids, oldidx)
   }
-  ordids <- c(ordids, setdiff(1:nrow(expdata), ordids))
-  rodata <- rbind(rodata, expdata[ordids, ])
-  rownames(rodata) <- NULL
-  write.csv(rodata, rofile, quote = FALSE, row.names = FALSE)
-  system(paste0("mv ", expfile, " ", "exptdesign_orig.csv"))
-  system(paste0("mv ", rofile, " ", expfile))
+  ordids <- c(ordids, setdiff(1:nrow(edat), ordids))
+  rodata <- rbind(rodata, edat[ordids, ])
+  write.csv(rodata, rofile, quote = FALSE, row.names = TRUE)
+  if (tail(strsplit(efile, "[.]")[[1]], 1) == 'csv'){
+    system(glue("mv {efile} {inpdir}/exptdesign_orig.csv"))
+    system(glue("mv {rofile} {efile}"))
+  } else{
+    einp <<- args[['-e']]
+    system(glue("mv {rofile} {inpdir}/edesign.csv"))
+    args[['-e']] <<- glue("{inpdir}/edesign.csv")
+  }
+  return(rodata)
 }
 
-check_gct_against_expt <- function(myfile){
-  if (!("-e" %in% names(args))) return()
+check_me_against_expt <- function(msids, esids, edat){
+  if (length(esids) < length(msids)){
+    stop("!Error: Unknown Samples in -p. Match Failed.\n", call. = TRUE)
+  } else if (length(esids) > length(msids)){
+    print("+Warning: Missing Samples in -p. Match Succeded.\n")
+  }
+  for (index in 1:length(msids)){
+    if (!(msids[index] %in% esids)){
+      print(msids[index])
+      stop("!Error: Unknown Samples in -p. Match Failed.\n", call. = TRUE)
+    } else if (msids[index] != esids[index]) freorder <<- TRUE
+  }
+  if (freorder) return(reorder(args[['-e']], edat, msids))
+  else return(edat)
+}
+
+extract_expt_desn <- function(myfile){
+  return(read.csv(myfile, header = TRUE, sep = ',', row.names = 1))
+}
+
+extract_tsi <- function(myfile){
+  edata <- read.xlsx(myfile, sheet = 2, colNames = TRUE, rowNames = TRUE, check.names = TRUE)
+  edata <- edata[2:nrow(edata), ] #Ignore the Data Type Row
+  rownames(edata) <- gsub("-", ".", rownames(edata))
+  if ("-t" %in% names(args)){
+    nedat <- edata
+    tedat <- edata
+    rownames(nedat) <- lapply(rownames(nedat), function(x){glue(x, '.N')})
+    rownames(tedat) <- lapply(rownames(tedat), function(x){glue(x, '.T')})
+    edata <- rbind(tedat, nedat)
+  }
+  return(edata)
+}
+
+extract_cct <- function(myfile){
+  cct <- read.delim(myfile, header = TRUE, sep = '\t', row.names = 1, check.names = TRUE)
+  return(cct)  
+}
+
+
+extract_gct <- function(myfile){
   gctdata <- suppressMessages(parse.gctx(myfile))
   if (args[['-v']] != strsplit(gctdata@version, "[#]")[[1]][-1]){
     stop("### Error: Version Entered and .GCT file don't match.\n", call. = TRUE)
   }
-  gctcids <- gctdata@cid
-  expdata <- extract_expt_desn(args[['-e']])
-  if (nrow(expdata) < length(gctcids)){
-    stop("### Error: Samples in .GCT not found in Experiment Design file.\n", call. = TRUE)
-  } else if (nrow(expdata) > length(gctcids)){
-    print(paste0("### Warning: Some Samples Missing in ", myfile, " file."))
-  }
-  expsampl <- expdata[['Sample.ID']][1:nrow(expdata)]
-  freorder <- FALSE
-  for (index in length(gctcids)){
-    if (!(gctcids[index] %in% expsampl)){
-      stop("### Error: Sample Mismatch between Experiment Design and .GCT file. (Sample not found in Experiment Design.\n)", call. = TRUE)
-    } else if (gctcids[index] != expsampl[index]) freorder <- TRUE
-  }
-  if (freorder) reorder(args[['-e']], expdata, gctcids)
+  return(gctdata@mat)
 }
 
-stub <- function(myfile){
-  
+extract_sct <- function(myfile){
+  return(read.delim(myfile, header = TRUE, sep = '\t', row.names = 1, check.names = TRUE))
+}
+
+convert_to_gct <- function(edat, pdat) {
+  cdesc <- cbind(Sample.ID=rownames(edat), edat)
+  cdesc <- cdesc[1:ncol(pdat), ]
+  if ("-m" %in% names(args) && tail(strsplit(args[['-m']][1], "[.]")[[1]], 1) == "sct"){
+    rdesc <- extract_sct(args[['-m']][1])
+  } else rdesc <- data.frame(Description=rownames(pdat))
+  cdesc[] <- lapply(cdesc, as.character)
+  rdesc[] <- lapply(rdesc, as.character)
+  gct <- new("GCT", mat = as.matrix(pdat), cdesc = cdesc, rdesc = rdesc, 
+             rid = rownames(pdat), cid = colnames(pdat), src = glue("{inpdir}/proteome.gct"))
+  write.gct(gct, glue("{inpdir}/proteome.gct"), ver = 3, appenddim = FALSE)
+  pinp <<- args[['-p']]
+  args[['-p']] <<- glue("{inpdir}/proteome.gct")
 }
 
 check_format <- function(myfile){
-  ext <- tail(strsplit(myfile, "[.]")[[1]], 1)
-  opt <- list("gct"=check_gct_against_expt, "cct"=stub)
-  opt[[ext]](myfile)
+  inpdir <<- paste(head(strsplit(myfile, "[/]")[[1]], -1), collapse='/')
+  srcdir <<- paste(head(strsplit(inpdir, "[/]")[[1]], -1), collapse='/')
+  extn <- tail(strsplit(myfile, "[.]")[[1]], 1)
+  prep <- list("gct"=extract_gct, "cct"=extract_cct)
+  pdat <- prep[[extn]](myfile)
+  #pdat <- pdat[, c(-4, -34, -50)]
+  edat <- data.frame()
+  if ("-e" %in% names(args)) {
+    extr <- list("gct"=extract_expt_desn, "cct"=extract_tsi)
+    edat <- extr[[extn]](args[['-e']])
+    edat <- check_me_against_expt(colnames(pdat), rownames(edat), edat)
+  }
+  if (extn != "gct") convert_to_gct(edat, pdat)
 }
 
 create_tar <- function(){
-  tardir  <- strsplit(args[['-o']], "[.]")[[1]][1]
-  system(paste0("mkdir -p ", tardir))
-  system(paste0("mkdir -p ", tardir, "/data"))
-  system(paste0("mkdir -p ", tardir, "/parsed-data"))
-  system(paste0("cp ", args[["-e"]], " ", tardir, "/data/."))
-  system(paste0("cp ", args[["-p"]], " ", tardir, "/parsed-data/."))
-  system(paste0("cp exptdesign_orig.csv ", tardir, "/data/."))
-  if ("-m" %in% names(args)){
-    for (extra in args[["-m"]]){
-      system(paste0("cp ", extra, " ", tardir, "/parsed-data/."))
-    }
+  tardir <- glue("{strsplit(args[['-o']], '[.]')[[1]][1]}")
+  system(glue("cd {srcdir}"))
+  system(glue("mkdir -p {tardir}"))
+  system(glue("mkdir -p {tardir}/data"))
+  system(glue("cp {args[['-e']]} {tardir}/data/."))
+  if (freorder){
+    if (args[['-f']] == "gct") system(glue("cp {inpdir}/exptdesign_orig.csv {tardir}/data/."))
+    else system(glue("cp {einp} {tardir}/data/.")) 
   }
-  system(paste0("tar -cvf ", args[['-o']], " ", tardir), ignore.stderr = TRUE)
-  system(paste0("rm -rf ", tardir))
+  if (args[['-f']] != "gct") system(glue("cp {pinp} {tardir}/data/."))
+  if (args[["-n"]] != "T") targetdir <- "parsed-data"
+  else targetdir <- "normalized-data"
+  system(glue("mkdir -p {tardir}/{targetdir}"))
+  system(glue("cp {args[['-p']]} {tardir}/{targetdir}/."))
+  if ("-m" %in% names(args))
+    for (extra in args[["-m"]]) system(glue("cp {extra} {tardir}/{targetdir}/."))
+  system(glue("tar -cvf {args[['-o']]} {tardir}"), ignore.stderr = TRUE)
+  system(glue("rm -rf {tardir}"))
 }
 
+
 main <- function(){
-  system(paste0("cd ", args[['-s']]))
   set_arguments()
   check_format(args[["-p"]])
   create_tar()
