@@ -19,6 +19,8 @@ Rscript tarcreater.r [OPTIONS]
 | -cna | `cna-data.gct`                                 | REQUIRED                                  | |
 | -n   | normalized flag                                | OPTIONAL                                  | `T` if normalized; `F` otherwise |
 | -t   | annotation flag                                | OPTIONAL                                  | `T` if -omics data contains `.T`/`.N` suffixed sample IDs/column names; `F` otherwise |
+| -c   | coersion flag                                  | OPTIONAL                                  | `T` if you want to forcefully match the `-p` file with `-e` by removing unknown samples; `F` otherwise. |
+| -log | numeric value corresponding to the desired base | OPTIONAL                                 | The data matrix will be log transformed, saving the original `-p` file the /data directory | 
 | -m   | `extra_file_1` `extra_file_2` ...              | OPTIONAL                                  | In presence of `sct` file, make it the first argument to this option |
 
 ```

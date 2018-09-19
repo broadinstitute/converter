@@ -7,14 +7,15 @@ p_load(optparse)
 args <- list()
 freorder <- FALSE
 inpdir <- ""
-pinp <- ""
+pinp <- c()
 einp <- ""
 
 # set command line arguments in the appropriate variables
 set_arguments <- function() {
   sysargs <- commandArgs(trailingOnly = TRUE)
   sysalen <- length(sysargs)
-  valid   <- c('-p', '-e', '-o', '-m', '-v', '-n', '-f', '-t', '-dt', '-rna', '-cna')
+  valid   <- c('-p', '-e', '-o', '-m', '-v', '-n', '-f', '-t', 
+               '-dt', '-rna', '-cna', '-c', '-log')
   index   <- 1
   while (index <= sysalen && sysargs[index] != '-m'){
     option <- sysargs[index]
@@ -117,7 +118,7 @@ extract_gct <- function(myfile){
   if (args[['-v']] != strsplit(gctdata@version, "[#]")[[1]][-1]){
     stop("### Error: Version Entered and .GCT file don't match.\n", call. = TRUE)
   }
-  return(gctdata@mat)
+  return(as.data.frame(gctdata@mat))
 }
 
 # read the sct file to fill the rdesc of the to-be created gct object
@@ -126,14 +127,16 @@ extract_sct <- function(myfile){
 }
 
 # fill the cdesc and rdesc, create a new gct object, write it into a file and save old addresses
-to_gct_3 <- function(edat, pdat) {
+to_gct_3 <- function(edat, pdat){
+  pinp <<- c(pinp, args[['-p']])
+  args[['-p']] <<- glue("{inpdir}/{args[['-dt']]}.gct")
   cdesc <- cbind(Sample.ID=rownames(edat), edat)
   cdesc <- cdesc[1:ncol(pdat), ]
   if (args[['-dt']] == "proteome"){
-    rdesc <- data.frame(geneSymbol=rownames(pdat))
+    rdesc <- data.frame(GeneSymbol=rownames(pdat))
   } else if (args[['-dt']] == "phosphoproteome"){
     genesymbol <- unlist(lapply(rownames(pdat), function(x){strsplit(x, "[-]")[[1]][1]}))
-    rdesc <- data.frame(geneSymbol=genesymbol)
+    rdesc <- data.frame(GeneSymbol=genesymbol)
   } else { 
     rdesc <- data.frame(Description=rownames(pdat)) 
   }
@@ -144,27 +147,51 @@ to_gct_3 <- function(edat, pdat) {
   cdesc[] <- lapply(cdesc, as.character)
   rdesc[] <- lapply(rdesc, as.character)
   gct <- new("GCT", mat = as.matrix(pdat), cdesc = cdesc, rdesc = rdesc,
-             rid = rownames(pdat), cid = colnames(pdat), src = glue("{inpdir}{args[['-dt']]}.gct"))
-  write.gct(gct, glue("{inpdir}/{args[['-dt']]}.gct"), ver = 3, appenddim = FALSE)
-  pinp <<- args[['-p']]
-  args[['-p']] <<- glue("{inpdir}/{args[['-dt']]}.gct")
+             rid = rownames(pdat), cid = colnames(pdat), src = args[['-p']])
+  write.gct(gct, args[['-p']], ver = 3, appenddim = FALSE)
 }
 
-# fill the cdesc and rdesc, create a new gct object, write it into a file and save old addresses
+# fill the cdesc and rdesc, create a new gct object, write it into a file, save old addresses
 to_gct_2 <- function(pdat){
+  pinp <<- c(pinp, args[['-p']])
+  args[['-p']] <<- glue("{inpdir}/{args[['-dt']]}.gct")
   cdesc <- data.frame()
   rdesc <- data.frame(id=rownames(pdat), Description=rownames(pdat))
   rdesc[] <- lapply(rdesc, as.character)
-  gct <- new("GCT", mat = as.matrix(pdat), rid = rownames(pdat), cid = colnames(pdat), rdesc = rdesc, cdesc = cdesc, src = glue("~/Documents/test.gct"))
-  write.gct(gct, glue("{inpdir}/{args[['-dt']]}.gct"), ver = 2, appenddim = FALSE)
-  pinp <<- args[['-p']]
-  args[['-p']] <<- glue("{inpdir}/{args[['-dt']]}.gct")
+  gct <- new("GCT", mat = as.matrix(pdat), rid = rownames(pdat), cid = colnames(pdat), 
+             rdesc = rdesc, cdesc = cdesc, src = args[['-p']])
+  write.gct(gct, args[['-p']], ver = 2, appenddim = FALSE)
 }
 
 # convert to gct 1.2 if no experiment design file exists; otherwise to gct 1.3
-convert_to_gct <- function(edat, pdat){
+other_to_gct <- function(edat, pdat){
   if ('-e' %in% names(args)) to_gct_3(edat, pdat)
   else to_gct_2(pdat)
+}
+
+gct_modified <- function(pdat){
+  gctdata <- suppressMessages(parse.gctx(args[['-p']]))
+  pinp <<- c(pinp, args[['-p']])
+  args[['-p']] <<- glue("{inpdir}/{args[['-dt']]}-modified.gct")
+  gctdata@mat <- as.matrix(pdat)
+  version <- as.numeric(strsplit(gctdata@version, "[.]")[[1]][2])
+  if (version == 2){
+    gctdata@rdesc <- data.frame(id=rownames(pdat), Description=rownames(pdat))
+    gctdata@rdesc[] <- lapply(gctdata@rdesc, as.character)
+  }
+  write.gct(gctdata, args[['-p']], ver = version, appenddim = FALSE)
+}
+
+coerce <- function(pdat, esids){
+  psids <- colnames(pdat)
+  drop <- c()
+  for (index in 1:length(psids))
+    if (!(psids[index] %in% esids))
+      drop <- c(drop, index)
+  if (length(drop) > 0)
+    pdat <- pdat[, -drop]
+  else args[['-c']] <<- "F"
+  return(pdat)
 }
 
 # collect data from -omics and experiement design; convert to gct in case of cct
@@ -173,15 +200,20 @@ check_format <- function(myfile){
   extn <- tail(strsplit(myfile, "[.]")[[1]], 1)
   prep <- list("gct"=extract_gct, "cct"=extract_cct)
   pdat <- prep[[extn]](myfile)
-  #pdat <- pdat[, c(-4, -34, -50)]
-  #pdat <- pdat[, c(-62,-129, -134, -135, -136, -137, -138, -139, -140, -141, -142)]
   edat <- data.frame()
   if ("-e" %in% names(args)) {
     extr <- list("gct"=extract_expt_desn, "cct"=extract_tsi)
     edat <- extr[[extn]](args[['-e']])
+    if ('-c' %in% names(args) && args[['-c']] == 'T')
+      pdat <- coerce(pdat, rownames(edat))
     edat <- check_me_against_expt(colnames(pdat), rownames(edat), edat)
   }
-  if (extn != "gct") convert_to_gct(edat, pdat)
+  if ('-log' %in% names(args))
+    pdat <- as.data.frame(lapply(pdat, function(x) log(x, as.numeric(args[['-log']]))), 
+                          row.names = rownames(pdat))
+  if (extn != "gct") other_to_gct(edat, pdat) # incorporates coerced and log canges
+  else if (('-c' %in% names(args) && args[['-c']] == "T") || '-log' %in% names(args)) 
+    gct_modified(pdat)
 }
 
 # create the output tarball with data, parsed-data OR normalized-data as subdirectories depending on flags
@@ -196,7 +228,9 @@ create_tar <- function(){
     if (args[['-f']] == "gct") system(glue("cp {inpdir}/exptdesign_orig.csv {tardir}/data/."))
     else system(glue("cp {einp} {tardir}/data/."))
   }
-  if (args[['-f']] != "gct") system(glue("cp {pinp} {tardir}/data/."))
+  if (length(pinp) > 0)
+    for (index in 1:length(pinp))
+      system(glue("cp {pinp[index]} {tardir}/data/."))
   system(glue("cp {args[['-rna']]} {tardir}/data/rna-data.gct"))
   system(glue("cp {args[['-cna']]} {tardir}/data/cna-data.gct"))
   targetgct <- ""
@@ -205,7 +239,7 @@ create_tar <- function(){
     targetgct <- glue("{args[['-dt']]}-ratio-norm-NArm.gct")
   } else {
     targetdir <- "parsed-data"
-    targetgct <- "."
+    targetgct <- glue("{args[['-dt']]}-ratio.gct")
   }
   system(glue("mkdir -p {tardir}/{targetdir}"))
   system(glue("cp {args[['-p']]} {tardir}/{targetdir}/{targetgct}"))
