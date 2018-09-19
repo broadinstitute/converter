@@ -1,12 +1,15 @@
 task pgdac_skip_parse {
   File omicsRatio
+  String fileType
+  String dataType
+  File rna
+  File cna
   String outFile = "pgdac_skip_parse-output.tar"
-  String filetype
-  String? tumorannot
+  String? tumorAnnot
   File? exptDesign
   Array[File]? extra
   String? version
-  String normalize
+  String? normalize
 
   Int? memory
   Int? disk_space
@@ -15,7 +18,7 @@ task pgdac_skip_parse {
 
   command {
     set -euo pipefail
-    Rscript /prot/proteomics/Projects/PGDAC/src/tarcreater.r -p ${omicsRatio} -e ${exptDesign} -o ${outFile} -t ${tumorannot} -v ${version} -n ${normalize} -f ${filetype} -m ${sep=' ' extra}
+    R CMD BATCH --vanilla "--args -p ${omicsRatio} -f ${fileType} -dt ${dataType} -rna ${rna} -cna ${cna} -o ${outFile} -v ${version} -e ${exptDesign} -t ${tumorAnnot} -n ${normalize} -m ${sep=' ' extra}" /prot/proteomics/Projects/PGDAC/src/tarcreater.r
   }
 
   output {
