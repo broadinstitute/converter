@@ -6,7 +6,6 @@ p_load(optparse)
 
 args <- list()
 freorder <- FALSE
-srcdir <- ""
 inpdir <- ""
 pinp <- ""
 einp <- ""
@@ -15,7 +14,7 @@ einp <- ""
 set_arguments <- function() {
   sysargs <- commandArgs(trailingOnly = TRUE)
   sysalen <- length(sysargs)
-  valid   <- c('-p', '-e', '-o', '-m', '-v', '-n', '-f', '-t')
+  valid   <- c('-p', '-e', '-o', '-m', '-v', '-n', '-f', '-t', '-dt', '-rna', '-cna')
   index   <- 1
   while (index <= sysalen && sysargs[index] != '-m'){
     option <- sysargs[index]
@@ -31,9 +30,9 @@ set_arguments <- function() {
     args[["-m"]] <<- c(args[["-m"]], sysargs[index])
     index <- index + 1
   }
-  if (!("-p" %in% names(args)) || !("-o" %in% names(args)) ||
-      !("-f" %in% names(args)) || !("-n" %in% names(args))){
-    stop("### Error: '-p'/'-o'/'-f'/'-n' Options Required.\n", call. = TRUE)
+  if (!( "-p" %in% names(args)) || !( "-o" %in% names(args)) || !( "-f" %in% names(args)) ||
+      !( "-cna" %in% names(args)) || !( "-rna" %in% names(args)) || !( "-dt" %in% names(args))){
+    stop("### Error: '-p'/'-o'/'-f'/'-rna'/'-cna'/'-dt' Options Required.\n", call. = TRUE)
   }
   if (args[['-f']] == "gct" && !('-v' %in% names(args))){
     stop("### Error: '-v' Option Required With '-f' : \"gct\".\n", call. = TRUE)
@@ -77,8 +76,7 @@ check_me_against_expt <- function(msids, esids, edat){
   }
   for (index in 1:length(msids)){
     if (!(msids[index] %in% esids)){
-      print(msids[index])
-      stop("!Error: Unknown Samples in -p. Match Failed.\n", call. = TRUE)
+      stop(glue("!Error: Unknown Samples in -p. ({msids[index]}) Match Failed.\n"), call. = TRUE)
     } else if (msids[index] != esids[index]) freorder <<- TRUE
   }
   if (freorder) return(reorder(args[['-e']], edat, msids))
@@ -97,7 +95,7 @@ extract_tsi <- function(myfile){
   edata <- read.xlsx(myfile, sheet = 2, colNames = TRUE, rowNames = TRUE, check.names = TRUE)
   edata <- edata[2:nrow(edata), ] #Ignore the Data Type Row
   rownames(edata) <- gsub("-", ".", rownames(edata))
-  if ("-t" %in% names(args)){
+  if ("-t" %in% names(args) && args[['-t']] == "T"){
     nedat <- edata
     tedat <- edata
     rownames(nedat) <- lapply(rownames(nedat), function(x){glue(x, '.N')})
@@ -163,7 +161,6 @@ convert_to_gct <- function(edat, pdat){
 # collect data from -omics and experiement design; convert to gct in case of cct
 check_format <- function(myfile){
   inpdir <<- paste(head(strsplit(myfile, "[/]")[[1]], -1), collapse='/')
-  srcdir <<- paste(head(strsplit(inpdir, "[/]")[[1]], -1), collapse='/')
   extn <- tail(strsplit(myfile, "[.]")[[1]], 1)
   prep <- list("gct"=extract_gct, "cct"=extract_cct)
   pdat <- prep[[extn]](myfile)
@@ -180,7 +177,7 @@ check_format <- function(myfile){
 # create the output tarball with data, parsed-data OR normalized-data as subdirectories depending on flags
 create_tar <- function(){
   tardir <- glue("{strsplit(args[['-o']], '[.]')[[1]][1]}")
-  system(glue("cd {srcdir}"))
+  system(glue("cd {inpdir}"))
   system(glue("mkdir -p {tardir}"))
   system(glue("mkdir -p {tardir}/data"))
   if ('-e' %in% names(args))
@@ -190,10 +187,18 @@ create_tar <- function(){
     else system(glue("cp {einp} {tardir}/data/."))
   }
   if (args[['-f']] != "gct") system(glue("cp {pinp} {tardir}/data/."))
-  if (args[["-n"]] != "T") targetdir <- "parsed-data"
-  else targetdir <- "normalized-data"
+  system(glue("cp {args[['-rna']]} {tardir}/data/."))
+  system(glue("cp {args[['-cna']]} {tardir}/data/."))
+  targetgct <- ""
+  if ('-n' %in% names(args) && args[["-n"]] == "T") {
+    targetdir <- "normalized-data"
+    targetgct <- glue("{args[['-dt']]}-ratio-norm-NArm.gct")
+  } else {
+    targetdir <- "parsed-data"
+    targetgct <- "."
+  }
   system(glue("mkdir -p {tardir}/{targetdir}"))
-  system(glue("cp {args[['-p']]} {tardir}/{targetdir}/."))
+  system(glue("cp {args[['-p']]} {tardir}/{targetdir}/{targetgct}"))
   if ("-m" %in% names(args))
     for (extra in args[["-m"]]) system(glue("cp {extra} {tardir}/{targetdir}/."))
   system(glue("tar -cvf {args[['-o']]} {tardir}"), ignore.stderr = TRUE)
