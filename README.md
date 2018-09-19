@@ -9,14 +9,17 @@ Rscript tarcreater.r [OPTIONS]
 
 | OPTIONS | VALUES | REQUIRED | DESCRIPTION |
 |:-------:|:------:|:--------:|-------------|
-| -p | `omics-ratio.ext`                              | REQUIRED                                  | -omics input File |
-| -f | `ext`                                          | REQUIRED                                  | File extension of `-p`; Can be: `gct`, `cct`. |
-| -v | 1.2/1.3                                        | REQUIRED for `gct`                        | version of `-p` if `gct` |
-| -e | `experiment-design.csv` / `your-file-name.tsi` | REQUIRED if `-p` is `gct` and `-v` is 1.2 | Allowed pairs: `csv-gct` and `tsi-cct`|
-| -o | `output.tar`                                   | REQUIRED                                  | No absolute paths; Only output tarball name |
-| -n | normalized flag                                | REQUIRED                                  | `T` if normalized; `F` otherwise |
-| -t | annotation flag                                | OPTIONAL                                  | `T` if -omics data contains `.T`/`.N` suffixed sample IDs/column names; `F` otherwise |
-| -m | `extra_file_1` `extra_file_2` ...              | OPTIONAL                                  | In presence of `sct` file, make it the first argument to this option |
+| -p   | `omics-ratio.ext`                              | REQUIRED                                  | -omics input File |
+| -f   | `ext`                                          | REQUIRED                                  | File extension of `-p`; Can be: `gct`, `cct`. |
+| -v   | 1.2/1.3                                        | REQUIRED for `gct`                        | version of `-p` if `gct` |
+| -e   | `experiment-design.csv` / `your-file-name.tsi` | REQUIRED if `-p` is `gct` and `-v` is 1.2 | Allowed pairs: `csv-gct` and `tsi-cct`|
+| -o   | `output.tar`                                   | REQUIRED                                  | No absolute paths; Only output tarball name |
+| -dt  | proteome / phosphoproteome / acetylome         | REQUIRED                                  | |
+| -rna | `rna-data.gct`                                 | REQUIRED                                  | |
+| -cna | `cna-data.gct`                                 | REQUIRED                                  | |
+| -n   | normalized flag                                | OPTIONAL                                  | `T` if normalized; `F` otherwise |
+| -t   | annotation flag                                | OPTIONAL                                  | `T` if -omics data contains `.T`/`.N` suffixed sample IDs/column names; `F` otherwise |
+| -m   | `extra_file_1` `extra_file_2` ...              | OPTIONAL                                  | In presence of `sct` file, make it the first argument to this option |
 
 ```
 python tarcreater.py [OPTIONS] ***OBSOLETE***
