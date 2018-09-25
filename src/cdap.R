@@ -138,6 +138,24 @@ unroll_cdap_expt_design <- function() {
   opt$expt.design <<- glue("{data.dir}/exptdesign.csv")
 }
 
+cdap_to_gct <- function(mat, rdesc, cdesc) {
+  if (opt$data.type == 'proteome')
+    desc <- data.frame(GeneSymbol=rownames(mat), row.names = rownames(mat))
+  else desc <- data.frame(Description=rownames(mat), row.names = rownames(mat))
+  if (nrow(cdesc) == 0 && nrow(rdesc) == 0)
+    ver <- 2
+  else ver <- 3
+  if (nrow(rdesc) == 0)
+    rdesc <- desc
+  else if (nrow(rdesc) > 0)
+    rdesc <- cbind(desc, rdesc)
+  cdesc[] <- lapply(cdesc, as.character)
+  rdesc[] <- lapply(rdesc, as.character)
+  gct <- new("GCT", mat = as.matrix(mat), cdesc=as.data.frame(t(cdesc)), rdesc=rdesc,
+             rid=rownames(mat), cid=colnames(mat), src=opt$target.file)
+  write.gct(gct, opt$target.file, ver = ver, appenddim = FALSE)
+}
+
 
 main <- function(){
   set_arguments()
@@ -145,6 +163,7 @@ main <- function(){
   tmtdata <- extract_cdap_tmt()
   expdata <- extract_expt_desn()
   re.edat <- check_me_against_expt(colnames(tmtdata$tmt), rownames(expdata), expdata)
+  cdap_to_gct(tmtdata$tmt, tmtdata$rdesc, tmtdata$cdesc)
 }
 
 if (!interactive()){
