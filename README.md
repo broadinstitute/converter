@@ -1,9 +1,15 @@
-#
 # File Converter
-#
+
+### Usage
 
 ```
-R CMD BATCH --vanilla "--args --inputfile $inputFile --inputtype $inputType --targettype $targetType --targetfile $targetFile --datatype $dataType --coerce [...]" converter.R
+R CMD BATCH --vanilla "--args
+--inputfile $inputFile
+--inputtype $inputType
+--targettype $targetType
+--targetfile $targetFile
+--datatype $dataType
+--coerce [...]" converter.R
 
 
 Usage: %prog [options]
