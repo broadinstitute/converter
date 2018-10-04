@@ -34,7 +34,8 @@ Options:
          Please provide absolute paths. Supported types: csv, .tsi.xlsx, .txt
 
      -c , --coerce
-         If you want to forcefully match the input file with experiment design file by removing samples not found in -exptdesign.
+         If you want to forcefully match the input file with experiment design
+         file by removing samples not found in -exptdesign.
 
      -t, --tumorannot
          If samples are annoted with .T/.N.
