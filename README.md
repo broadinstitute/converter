@@ -1,37 +1,46 @@
-# tarcreater
-
-### Running the tarcreater manually
-
-```
-Rscript tarcreater.r [OPTIONS]
+#
+# File Converter
+#
 
 ```
+R CMD BATCH --vanilla "--args --inputfile $inputFile --inputtype $inputType --targettype $targetType --targetfile $targetFile --datatype $dataType --coerce [...]" converter.R
 
-| OPTIONS | VALUES | REQUIRED | DESCRIPTION |
-|:-------:|:------:|:--------:|-------------|
-| -p   | `omics-ratio.ext`                              | REQUIRED                                  | -omics input File |
-| -f   | `ext`                                          | REQUIRED                                  | File extension of `-p`; Can be: `gct`, `cct`. |
-| -v   | 1.2/1.3                                        | REQUIRED for `gct`                        | version of `-p` if `gct` |
-| -e   | `experiment-design.csv` / `your-file-name.tsi` | REQUIRED if `-p` is `gct` and `-v` is 1.2 | Allowed pairs: `csv-gct` and `tsi-cct`|
-| -o   | `output.tar`                                   | REQUIRED                                  | No absolute paths; Only output tarball name |
-| -dt  | proteome / phosphoproteome / acetylome         | REQUIRED                                  | |
-| -rna | `rna-data.gct`                                 | REQUIRED                                  | |
-| -cna | `cna-data.gct`                                 | REQUIRED                                  | |
-| -n   | normalized flag                                | OPTIONAL                                  | `T` if normalized; `F` otherwise |
-| -t   | annotation flag                                | OPTIONAL                                  | `T` if -omics data contains `.T`/`.N` suffixed sample IDs/column names; `F` otherwise |
-| -c   | coersion flag                                  | OPTIONAL                                  | `T` if you want to forcefully match the `-p` file with `-e` by removing unknown samples; `F` otherwise. |
-| -log | numeric value corresponding to the desired base | OPTIONAL                                 | The data matrix will be log transformed, saving the original `-p` file the /data directory | 
-| -m   | `extra_file_1` `extra_file_2` ...              | OPTIONAL                                  | In presence of `sct` file, make it the first argument to this option |
 
-```
-python tarcreater.py [OPTIONS] ***OBSOLETE***
+Usage: %prog [options]
 
-OPTIONS:
--p <omics-ratio.gct> -REQUIRED-
--e <experiment-design.csv> -REQUIRED-
--o <output.tar> -REQUIRED-
--m <extra_file_1> <extra_file_2> ... -OPTIONAL-
+Options:
+     -i <inputFile>, --inputfile=<inputFile>
+         Please Provide Absolute Paths
 
+     -a <inputType>, --inputtype=<inputType>
+         Supported Types: cct, cdap
+
+     -b <targetType>, --targettype=<targetType>
+         Supported Types: gct
+
+     -o <targetFile>, --targetfile=<targetFile>
+         Please provide absolute paths
+
+     -d <dataType>, --datatype=<dataType>
+         Supported Data Types: Proteome, Phosphoproteome
+
+     -e <experimentDesignFile>, --exptdesign=<experimentDesignFile>
+         Please provide absolute paths. Supported types: csv, .tsi.xlsx, .txt
+
+     -c , --coerce
+         If you want to forcefully match the input file with experiment design file by removing samples not found in -exptdesign.
+
+     -t, --tumorannot
+         If samples are annoted with .T/.N.
+
+     --log=<log base>
+         Base of log transform on the input data.
+
+     --sct=<sctFile>
+         sct File
+
+     -h, --help
+         Show this help message and exit
 ```
 
 ### Running the tarcreater on Firecloud
@@ -39,10 +48,6 @@ OPTIONS:
 1. Use `java -jar wdltool.jar inputs ...` to generate `inputs.json` file (see a sample in the `wdl/pgdac_skip_parse` folder)
 2. Edit the `inputs.json` file to remove the optional parameters that you don't want to enter. Edit the required fields to match your inputs.
 3. Use `java -jar cromwell.jar run ...` to execute the `wdl/pgdac_skip_parse/pgdac_skip_parse.wdl` with the `--inputs` parameter set to the `inputs.json` file created above.
-
-### Outputs
-
-Tar file extracts to two directories - `data` and `parsed-data`. `data` houses the `experiment-design.csv` file. `parsed-data` contains the required `<omics-ratio.gct` and extra optional files passed through the `-m` option or through the *extra* field in the `inputs.json` file as ["extra_file_1", "extra_file_2", ...].
 
 For queries mail:
 rkothadi@broadinstitute.org
