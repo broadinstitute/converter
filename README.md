@@ -1,60 +1,34 @@
 # File Converter
 
 ### Usage
+- Usage: src/cct.r [options]
+- Options:
+  * -i INPUTFILE, --inputfile=INPUTFILE
+       Full path of input TSV/CCT file.
 
-```
-R CMD BATCH --vanilla "--args
---inputfile $inputFile
---inputtype $inputType
---targettype $targetType
---targetfile $targetFile
---datatype $dataType
---coerce [...]" converter.R
+  * -o TARGETFILE, --targetfile=TARGETFILE
+       Full path of target GCT file.
 
+  * -v VERSION, --version=VERSION
+       Version of "-o" (2 / 3).
 
-Usage: %prog [options]
+  * -a ANNOTFILE, --annotfile=ANNOTFILE
+       Full path of annotation file.
 
-Options:
-     -i <inputFile>, --inputfile=<inputFile>
-         Please Provide Absolute Paths
+  * -r RDESC, --rdesc=RDESC
+       Last column # of "rdesc" in "-i".
 
-     -a <inputType>, --inputtype=<inputType>
-         Supported Types: cct, cdap
+  * -g GENECOL, --genecol=GENECOL
+       Column name in "-i" that has gene names.
 
-     -b <targetType>, --targettype=<targetType>
-         Supported Types: gct
+  * -c, --coerce
+       Force match samples from "-i" and "-a".
 
-     -o <targetFile>, --targetfile=<targetFile>
-         Please provide absolute paths
+  * -t, --tumorannot
+       Create sample IDs with .T/.N suffixes.
 
-     -d <dataType>, --datatype=<dataType>
-         Supported Data Types: Proteome, Phosphoproteome
+  * -h, --help
+       Show this help message and exit
 
-     -e <experimentDesignFile>, --exptdesign=<experimentDesignFile>
-         Please provide absolute paths. Supported types: csv, .tsi.xlsx, .txt
-
-     -c , --coerce
-         If you want to forcefully match the input file with experiment design
-         file by removing samples not found in -exptdesign.
-
-     -t, --tumorannot
-         If samples are annoted with .T/.N.
-
-     --log=<log base>
-         Base of log transform on the input data.
-
-     --sct=<sctFile>
-         sct File
-
-     -h, --help
-         Show this help message and exit
-```
-
-### Running the tarcreater on Firecloud
-
-1. Use `java -jar wdltool.jar inputs ...` to generate `inputs.json` file (see a sample in the `wdl/pgdac_skip_parse` folder)
-2. Edit the `inputs.json` file to remove the optional parameters that you don't want to enter. Edit the required fields to match your inputs.
-3. Use `java -jar cromwell.jar run ...` to execute the `wdl/pgdac_skip_parse/pgdac_skip_parse.wdl` with the `--inputs` parameter set to the `inputs.json` file created above.
-
-For queries mail:
-rkothadi@broadinstitute.org
+- For queries mail:
+- rkothadi@broadinstitute.org

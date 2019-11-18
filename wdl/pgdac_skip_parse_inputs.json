@@ -1,9 +1,0 @@
-{
-  "pgdac_skip_parse_workflow.pgdac_skip_parse.dataType": "proteome",
-  "pgdac_skip_parse_workflow.pgdac_skip_parse.exptDesign": "/Users/rkothadi/Documents/Code/MyGithub/tarcreater/input-data/exptdesign.csv",
-  "pgdac_skip_parse_workflow.pgdac_skip_parse.cna": "/Users/rkothadi/Documents/Code/MyGithub/tarcreater/input-data/medullo-cna-data.gct",
-  "pgdac_skip_parse_workflow.pgdac_skip_parse.omicsRatio": "/Users/rkothadi/Documents/Code/MyGithub/tarcreater/input-data/microarray-data.gct",
-  "pgdac_skip_parse_workflow.pgdac_skip_parse.rna": "/Users/rkothadi/Documents/Code/MyGithub/tarcreater/input-data/proteome-ratio.gct",
-  "pgdac_skip_parse_workflow.pgdac_skip_parse.version": "1.2",
-  "pgdac_skip_parse_workflow.pgdac_skip_parse.fileType": "gct"
-}
