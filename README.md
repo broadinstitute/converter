@@ -1,34 +1,36 @@
 # File Converter
 
 ### Usage
-- Usage: src/cct.r [options]
-- Options:
-  * -i INPUTFILE, --inputfile=INPUTFILE
-       Full path of input TSV/CCT file.
+~~~~
+Usage: src/cct.r [options]
 
-  * -o TARGETFILE, --targetfile=TARGETFILE
-       Full path of target GCT file.
+Options:
+	-i INPUTFILE, --inputfile=INPUTFILE
+		Full path of input TSV/CCT file.
 
-  * -v VERSION, --version=VERSION
-       Version of "-o" (2 / 3).
+	-o TARGETFILE, --targetfile=TARGETFILE
+		Full path of target GCT file.
 
-  * -a ANNOTFILE, --annotfile=ANNOTFILE
-       Full path of annotation file.
+	-v VERSION, --version=VERSION
+		Version of "-o" (2 / 3).
 
-  * -r RDESC, --rdesc=RDESC
-       Last column # of "rdesc" in "-i".
+	-a ANNOTFILE, --annotfile=ANNOTFILE
+		Full path of annotation file.
 
-  * -g GENECOL, --genecol=GENECOL
-       Column name in "-i" that has gene names.
+	-r RDESC, --rdesc=RDESC
+		Last column # of "rdesc" in "-i".
 
-  * -c, --coerce
-       Force match samples from "-i" and "-a".
+	-g GENECOL, --genecol=GENECOL
+		Column name in "-i" that has gene names.
 
-  * -t, --tumorannot
-       Create sample IDs with .T/.N suffixes.
+	-c, --coerce
+		Force match samples from "-i" and "-a".
 
-  * -h, --help
-       Show this help message and exit
+	-t, --tumorannot
+		Create sample IDs with .T/.N suffixes.
 
-- For queries mail:
-- rkothadi@broadinstitute.org
+	-h, --help
+		Show this help message and exit
+~~~~
+
+- For queries mail: rkothadi@broadinstitute.org
